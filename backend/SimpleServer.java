@@ -19,7 +19,7 @@ public class SimpleServer {
         System.out.println("Server running at http://localhost:8000/");
     }
 
-    // POST: зберігає нове повідомлення
+    // POST /message — додає нове повідомлення
     static class MessageHandler implements HttpHandler {
         public void handle(HttpExchange exchange) throws IOException {
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
@@ -31,7 +31,7 @@ public class SimpleServer {
                 InputStream is = exchange.getRequestBody();
                 String msg = new String(is.readAllBytes());
 
-                // Додаємо повідомлення у файл
+                // додаємо повідомлення до файла
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
                     writer.write(msg);
                     writer.newLine();
@@ -44,7 +44,7 @@ public class SimpleServer {
         }
     }
 
-    // GET: повертає список повідомлень
+    // GET /messages — повертає список повідомлень
     static class MessagesHandler implements HttpHandler {
         public void handle(HttpExchange exchange) throws IOException {
             if ("OPTIONS".equals(exchange.getRequestMethod())) {
@@ -57,10 +57,7 @@ public class SimpleServer {
                 messages = Files.readAllLines(Paths.get(FILE_PATH));
             }
 
-            String json = new StringBuilder("[\"")
-                    .append(String.join("\",\"", messages))
-                    .append("\"]")
-                    .toString();
+            String json = "[\"" + String.join("\",\"", messages) + "\"]";
 
             byte[] response = json.getBytes();
             exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -71,7 +68,7 @@ public class SimpleServer {
         }
     }
 
-    // Обробка preflight (CORS) запитів
+    // Загальний метод для відповіді на preflight-запити (CORS)
     static void sendCORS(HttpExchange exchange) throws IOException {
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
